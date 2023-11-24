@@ -1,0 +1,114 @@
+ORACLE TO POSTGRES GÖÇ
+--------------------------
+
+- ora2pg Perl yazılımı olduğu için Windows'a Perl kurulması gerekiyordu. Bunun için Strawberry Perl kurduk.
+
+- ora2pg Oracle'a bağlanmak için Oracle client'a ihtiyaç duyduğu için Oracle Client kuruldu.
+
+- ora2pg.conf dosyasını HR şemasını taşımak üzere güncelledik.
+
+- https://stackoverflow.com/questions/47345373/how-to-install-ora2pg-on-windows-7 adresinde ora2pg için yapılacak ilk ayarlar var.
+
+
+
+ora2pg kurarken:
+
+cd c:\ora2pg
+
+perl Makefile.PL
+
+gmake && gmake install
+
+Set the environment variables:
+Set ORACLE_HOME=C:\oraclexe\app\oracle\product\11.2.0\server
+
+Set LD_LIBRARY_PATH=C:\oraclexe\app\oracle\product\11.2.0\server\lib
+
+
+
+Install DBD Oracle libraries(kurulurken internet bağlantısı şart):
+
+perl -MCPAN -e "install DBD::Oracle"
+
+
+TAŞIMA ADIMLARI:
+----------------------------------------------------------
+
+Önemli: ora2pg.conf dosyasını c:\ora2pg dizinine kopyaladık. 
+Dosya adını ora2pg.conf.dist yaptık.
+
+ora2pg --project_base c:\ora2pg --init_project hrtest
+
+cd hrtest/
+
+(hrtest/config dizinindeki ora2pg.conf dosyasını, bir üst klasöre(yeni hrtest içinde direk olarak ora2pg.conf dosyası olacak.)
+
+set PGPASSWORD=postgres
+
+(Strawberry Perl 64-bit kurulduysa, Oracle Client da 64-bit olmak zorunda. 32-bit ise diğeri de 32-bit olacak.)
+
+ora2pg -c ora2pg.conf -t TABLE -o tables.sql -b schema/tables/
+
+(Not:  Warning ile ora2pg.conf dosyasına,
+
+PG_VERSION                  12
+
+eklememi istedi.)
+
+
+Çalıştırmadan önce tables.sql, INDEXES_table.sql ve CONSTRAINTS_tables.sql scriptinin başına,
+
+SET search_path=HR;
+
+ekleyelim.
+
+(Bundan sonraki tüm .sql dosyalarına 
+
+SET search_path=HR;
+
+eklensin)
+
+psql -h 192.168.56.103 -d oracle -U postgres -p 5432 -a -q -f schema/tables/tables.sql
+
+psql -h 192.168.56.103 -d oracle -U postgres -p 5432 -a -q -f schema/tables/INDEXES_tables.sql
+
+psql -h 192.168.56.103 -d oracle -U postgres -p 5432 -a -q -f schema/tables/CONSTRAINTS_tables.sql
+
+ora2pg -c ora2pg.conf -t SEQUENCE -o sequence.sql -b schema/sequences/
+
+psql -h 192.168.56.103 -d oracle -U postgres -p 5432 -a -q -f schema/sequences/sequence.sql
+
+
+
+ora2pg -c ora2pg.conf -t PROCEDURE -o procedure.sql -b schema/procedures
+
+psql -h 192.168.56.103 -d oracle -U postgres -p 5432 -a -q -f schema/procedures/procedure.sql
+
+ora2pg -c ora2pg.conf -t FUNCTION -o function.sql -b schema/functions
+
+ora2pg -c ora2pg.conf -t PACKAGE -o package.sql -b schema/packages
+
+ora2pg -c ora2pg.conf -t VIEW -o view.sql -b schema/views/
+
+psql -h 192.168.56.103 -d oracle -U postgres -p 5432 -a -q -f schema/views/view.sql
+
+ora2pg -c ora2pg.conf -t GRANT -o grant.sql -b schema/grants/
+
+--  Oracle'daki sys_guid fonksiyonuna karşılık gelen uuid_generate_v4 için aşağıdaki extension yüklenmeli insert scripti çalıştırılmadan önce.
+
+
+(psql -U postgres ile veritabanına bağlanıp extension'ı çalıştıralım.)
+-- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+ora2pg -c ora2pg.conf -t COPY -o data.sql -b schema
+
+psql -h 192.168.56.103 -d oracle -U postgres -p 5432 -a -q -f schema/data.sql
+
+ora2pg -c ora2pg.conf -t INSERT -o insert.sql -b schema
+
+
+ora2pg -c ora2pg.conf -t TRIGGER -o trigger.sql -b schema/triggers/
+
+psql -h 192.168.56.103 -d oracle -U postgres -p 5432 -a -q -f schema/triggers/trigger.sql
+
+
