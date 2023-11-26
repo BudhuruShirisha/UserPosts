@@ -34,29 +34,46 @@ perl -MCPAN -e "install DBD::Oracle"
 TAŞIMA ADIMLARI:
 ----------------------------------------------------------
 
-Önemli: ora2pg.conf dosyasını c:\ora2pg dizinine kopyaladık. 
+Önemli: ora2pg.conf dosyasını c:\ora2pg dizinine kopyaladık.   
 Dosya adını ora2pg.conf.dist yaptık.
+( Important: We copied the ora2pg.conf file to the c:\ora2pg directory.
+We made the file name ora2pg.conf.dist )
+
 
 ora2pg --project_base c:\ora2pg --init_project hrtest
+
+(ora2pg --project_base c:\ora2pg --init_project hrtest)
+
 
 cd hrtest/
 
 (hrtest/config dizinindeki ora2pg.conf dosyasını, bir üst klasöre(yeni hrtest içinde direk olarak ora2pg.conf dosyası olacak.)
 
+(Copy the ora2pg.conf file in the hrtest/config directory to a higher folder (there will be an ora2pg.conf file directly in the new hrtest).
+
 set PGPASSWORD=postgres
 
 (Strawberry Perl 64-bit kurulduysa, Oracle Client da 64-bit olmak zorunda. 32-bit ise diğeri de 32-bit olacak.)
+
+(If Strawberry Perl is 64-bit installed, Oracle Client must also be 64-bit. If it is 32-bit, the other one will also be 32-bit.)
+
 
 ora2pg -c ora2pg.conf -t TABLE -o tables.sql -b schema/tables/
 
 (Not:  Warning ile ora2pg.conf dosyasına,
 
+
 PG_VERSION                  12
 
 eklememi istedi.)
 
+(Note: With warning, ora2pg.conf file,
+PG_VERSION 12
+He asked me to add it.)
+
 
 Çalıştırmadan önce tables.sql, INDEXES_table.sql ve CONSTRAINTS_tables.sql scriptinin başına,
+Before running the tables.sql, INDEXES_table.sql and CONSTRAINTS_tables.sql script,
 
 SET search_path=HR;
 
